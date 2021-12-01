@@ -5,20 +5,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define BUFSIZE 32
+
 aoc_result_t day1() {
     aoc_result_t result = {0};
     FILE *f = fopen("inputs/2021/input01.txt", "rb");
     assert(f != NULL);
-    char *linebuf = malloc(10);
-    size_t n;
-    ssize_t bytes;
+    char linebuf[BUFSIZE];
     int a0 = INT_MAX, a1 = 0;
     int i = 0;
     int win[4];
 
-    while ((bytes = getline(&linebuf, &n, f)) != -1) {
-
-        linebuf[bytes - 1] = '\0'; // trim newline
+    while (fgets(linebuf, BUFSIZE, f) != NULL) {
         a1 = win[i % 4] = atoi(linebuf);
         if (a1 > a0) {
             result.p1++;
@@ -40,7 +38,5 @@ aoc_result_t day1() {
 
         i++;
     }
-
-    free(linebuf);
     return result;
 }

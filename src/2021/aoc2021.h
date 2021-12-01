@@ -13,13 +13,12 @@
 
 #define WITH_TIMING(Msg, Expr)                                                 \
     do {                                                                       \
+        int reps = 1000;                                                       \
         struct timespec start, end;                                            \
         clock_gettime(CLOCK_REALTIME, &start);                                 \
-        assert_perror(errno);                                                  \
-        REPEAT(Expr, 100);                                                     \
+        REPEAT(Expr, reps);                                                    \
         clock_gettime(CLOCK_REALTIME, &end);                                   \
-        assert_perror(errno);                                                  \
-        printf("%s: %g usecs\n", Msg, NS_TO_US(DURATION(start, end) / 100));   \
+        printf("%s: %g usecs\n", Msg, NS_TO_US(DURATION(start, end) / reps));  \
     } while (0);
 
 typedef struct {
