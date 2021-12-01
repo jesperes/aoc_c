@@ -1,7 +1,7 @@
 default: test
 
 CC=gcc
-CFLAGS=-g -O2 -Wall -Wextra -Werror -MMD -Isrc/2021
+CFLAGS=-g -O3 -Wall -Wextra -Werror -MMD -Isrc/2021 -D_GNU_SOURCE
 
 SOURCES=$(wildcard src/2021/*.c src/*.c)
 OBJECTS=$(SOURCES:%.c=%.o)
