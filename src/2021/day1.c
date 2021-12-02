@@ -1,23 +1,18 @@
-#include "aoc2021.h"
-
-#include <assert.h>
+#include "aoc.h"
 #include <limits.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-#define BUFSIZE 32
-
-aoc_result_t day1() {
+aoc_result_t day1(char *input, UNUSED int len) {
     aoc_result_t result = {0};
-    FILE *f = fopen("inputs/2021/input01.txt", "rb");
-    assert(f != NULL);
-    char linebuf[BUFSIZE];
+    char *p = input;
     int a0 = INT_MAX, a1 = 0;
     int i = 0;
     int win[4];
 
-    while (fgets(linebuf, BUFSIZE, f) != NULL) {
-        a1 = win[i % 4] = atoi(linebuf);
+    while (1) {
+        a1 = win[i % 4] = strtol(p, &p, 10);
+        if (a1 == 0)
+            break;
         if (a1 > a0) {
             result.p1++;
         }
@@ -38,5 +33,6 @@ aoc_result_t day1() {
 
         i++;
     }
+    // printf("p1 = %ld, p2 = %ld\n", result.p1, result.p2);
     return result;
 }

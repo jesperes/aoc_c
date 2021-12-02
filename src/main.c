@@ -1,14 +1,8 @@
 #include "aoc2021.h"
-#include <assert.h>
-#include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <time.h>
 
+#ifndef TEST
 int main() {
-    WITH_TIMING("day1", {
-        aoc_result_t res = day1();
-        assert(res.p1 == 1400);
-        assert(res.p2 == 1429);
-    });
+    RUN_PUZZLE("day1", day1, 2021, 1, aoc_result_t, 1400, 1429);
+    RUN_PUZZLE("day2", day2, 2021, 2, aoc_result_t, 1962940, 1813664422);
 }
+#endif
