@@ -35,7 +35,7 @@ struct mmapping mmap_input_file(int year, int day) {
     }
 
     m.len = st.st_size;
-    m.ptr = mmap(NULL, m.len, PROT_READ | PROT_WRITE, MAP_PRIVATE, m.fd, 0);
+    m.ptr = mmap(NULL, m.len, PROT_READ, MAP_PRIVATE, m.fd, 0);
     if (m.ptr == MAP_FAILED) {
         perror("mmap");
         abort();

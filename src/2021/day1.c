@@ -33,6 +33,5 @@ aoc_result_t day1(char *input, UNUSED int len) {
 
         i++;
     }
-    // printf("p1 = %ld, p2 = %ld\n", result.p1, result.p2);
     return result;
 }

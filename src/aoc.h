@@ -22,19 +22,21 @@
         clock_gettime(CLOCK_REALTIME, &start);                                 \
         REPEAT(Expr, reps);                                                    \
         clock_gettime(CLOCK_REALTIME, &end);                                   \
-        printf("%s: %g usecs\n", Msg,                                          \
+        printf("%s: %.3g usecs\n", Msg,                                        \
                ((double)NS_TO_US(DURATION(start, end)) / reps));               \
     } while (0);
 
 #define RUN_PUZZLE(Msg, Function, Year, Day, ResultType, P1, P2)               \
     do {                                                                       \
-        struct mmapping m = mmap_input_file((Year), (Day));                    \
         WITH_TIMING(Msg, {                                                     \
-            ResultType __result = Function(m.ptr, m.len);                      \
+            extern unsigned char inputs_##Year##_input##Day##_txt[];           \
+            extern unsigned int inputs_##Year##_input##Day##_txt_len;          \
+            char *ptr = (char *)inputs_##Year##_input##Day##_txt;              \
+            unsigned int len = inputs_##Year##_input##Day##_txt_len;           \
+            ResultType __result = Function(ptr, len);                          \
             assert(__result.p1 == P1);                                         \
             assert(__result.p2 == P2);                                         \
         });                                                                    \
-        unmap_input_file(m);                                                   \
     } while (0);
 
 // TODO handle non-integer results
