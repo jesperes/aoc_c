@@ -22,17 +22,17 @@
         clock_gettime(CLOCK_REALTIME, &start);                                 \
         REPEAT(Expr, reps);                                                    \
         clock_gettime(CLOCK_REALTIME, &end);                                   \
-        printf("%s: %.3g usecs\n", Msg,                                        \
+        printf("%s: %g usecs\n", Msg,                                          \
                ((double)NS_TO_US(DURATION(start, end)) / reps));               \
     } while (0);
 
 #define RUN_PUZZLE(Msg, Function, Year, Day, ResultType, P1, P2)               \
     do {                                                                       \
+        extern unsigned char inputs_##Year##_input##Day##_txt[];               \
+        extern unsigned int inputs_##Year##_input##Day##_txt_len;              \
+        char *ptr = (char *)inputs_##Year##_input##Day##_txt;                  \
+        unsigned int len = inputs_##Year##_input##Day##_txt_len;               \
         WITH_TIMING(Msg, {                                                     \
-            extern unsigned char inputs_##Year##_input##Day##_txt[];           \
-            extern unsigned int inputs_##Year##_input##Day##_txt_len;          \
-            char *ptr = (char *)inputs_##Year##_input##Day##_txt;              \
-            unsigned int len = inputs_##Year##_input##Day##_txt_len;           \
             ResultType __result = Function(ptr, len);                          \
             assert(__result.p1 == P1);                                         \
             assert(__result.p2 == P2);                                         \
