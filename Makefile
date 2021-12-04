@@ -1,30 +1,29 @@
-default: aoc
 
-CC=clang
-CFLAGS=-g -O3 -Wall -Wextra -Werror -MMD -Isrc -Isrc/2021 -D_GNU_SOURCE
-LDFLAGS=
+export CC=clang
+export CFLAGS=-g -O3 -Wall -Wextra -Werror -MMD -Isrc -Isrc/2021 -D_GNU_SOURCE
 
-INPUTS=$(wildcard inputs/2021/*.txt)
-INPUT_SRC=$(INPUTS:inputs/2021/%.txt=src/2021/%.c)
+BUILD_DIR=_build
 
-SOURCES=$(wildcard src/2021/*.c src/*.c) $(INPUT_SRC)
-OBJECTS=$(SOURCES:%.c=%.o)
-DEPFILES=$(SOURCES:%.c=%.d)
+default:
+	$(MAKE) configure
+	$(MAKE) compile
+	$(MAKE) run
 
--include $(DEPFILES)
+$(BUILD_DIR):
+	mkdir -p $@
 
-$(INPUT_SRC): src/2021/%.c: inputs/2021/%.txt
-	xxd -i $< > $@
+.PHONY: configure
+configure: | $(BUILD_DIR)
+	cd $(BUILD_DIR) && cmake ..
 
-%.o: %.c
-	$(CC) $(CFLAGS) $< -c -o $@
+.PHONY: compile
+compile: | $(BUILD_DIR)
+	cd $(BUILD_DIR) && $(MAKE) -s
 
-aoc2021: $(OBJECTS)
-	$(CC) $(LDFLAGS) $^ -o $@
+.PHONY: run
+run: | $(BUILD_DIR)
+	cd $(BUILD_DIR) && ./aoc2021
 
-.PHONY: aoc
-aoc: aoc2021
-	./aoc2021
-
+.PHONY: clean
 clean:
-	rm -rf $(OBJECTS) $(DEPFILES) $(INPUT_SRC) aoc2021
+	rm -rf $(BUILD_DIR)

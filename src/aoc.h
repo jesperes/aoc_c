@@ -28,10 +28,10 @@
 
 #define RUN_PUZZLE(Msg, Function, Year, Day, ResultType, P1, P2, TotalTime)    \
     do {                                                                       \
-        extern unsigned char inputs_##Year##_input##Day##_txt[];               \
-        extern unsigned int inputs_##Year##_input##Day##_txt_len;              \
-        char *ptr = (char *)inputs_##Year##_input##Day##_txt;                  \
-        unsigned int len = inputs_##Year##_input##Day##_txt_len;               \
+        extern unsigned char input##Day##_txt[];                               \
+        extern unsigned int input##Day##_txt_len;                              \
+        char *ptr = (char *)input##Day##_txt;                                  \
+        unsigned int len = input##Day##_txt_len;                               \
         WITH_TIMING(Msg, TotalTime, {                                          \
             ResultType __result = Function(ptr, len);                          \
             assert(__result.p1 == P1);                                         \
