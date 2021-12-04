@@ -11,5 +11,5 @@ int main() {
                total_time);
     RUN_PUZZLE("day4", day4, 2021, 4, aoc_result_t, 33462, 30070, total_time);
 
-    printf("Total: %g usecs\n", total_time / 1000.0);
+    printf("Total: %g msecs\n", total_time / 1000000.0);
 }
