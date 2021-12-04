@@ -16,7 +16,7 @@
 
 #define WITH_TIMING(Msg, TotalTime, Expr)                                      \
     do {                                                                       \
-        int reps = 10000;                                                      \
+        int reps = 100;                                                        \
         struct timespec start, end;                                            \
         clock_gettime(CLOCK_REALTIME, &start);                                 \
         REPEAT(Expr, reps);                                                    \
