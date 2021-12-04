@@ -1,7 +1,4 @@
 
-export CC=clang
-export CFLAGS=-g -O3 -Wall -Wextra -Werror -MMD -Isrc -Isrc/2021 -D_GNU_SOURCE
-
 BUILD_DIR=_build
 
 default:
