@@ -4,6 +4,7 @@
 
 int main() {
     int64_t total_time = 0;
+    int days = 5;
 
     // Aim for a total runtime of 50ms.
     int64_t budget = 50 * 1000000;
@@ -20,4 +21,10 @@ int main() {
     printf("Total: %g msecs\n", total_time / 1000000.0);
     printf("Budget (%ld ms) spent: %ld%%\n", budget / 1000000,
            100 * total_time / budget);
+
+    int64_t avg_per_day = total_time / days;
+    int64_t predicted_total = avg_per_day * 25;
+
+    printf("Predicted total: %g ms (%ld%% of budget)\n",
+           predicted_total / 1000000.0, 100 * predicted_total / budget);
 }
