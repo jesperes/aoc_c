@@ -25,6 +25,7 @@ int main() {
     int64_t avg_per_day = total_time / days;
     int64_t predicted_total = avg_per_day * 25;
 
+    printf("Average ms/day: %g ms\n", (total_time / days) / 1000000.0);
     printf("Predicted total: %g ms (%ld%% of budget)\n",
            predicted_total / 1000000.0, 100 * predicted_total / budget);
 }
