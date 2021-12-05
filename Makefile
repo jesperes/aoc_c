@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-g -O3 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude -DNUM_REPS=100
+CFLAGS=-g -Ofast -Wall -Wextra -Werror -pedantic -D_GNU_SOURCE -Iinclude -DNUM_REPS=100
 
 # TODO parameterize this on year
 YEAR=2021

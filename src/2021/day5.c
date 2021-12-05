@@ -22,6 +22,13 @@ void ascending(int a, int b, int *start, int *end) {
 
 int sign(int x) { return (x < 0) ? -1 : 1; }
 
+void countoverlaps(char p[1000][1000], int x, int y, int64_t *overlaps) {
+    p[x][y]++;
+    if (p[x][y] == 2) {
+        (*overlaps)++;
+    }
+}
+
 aoc_result_t day5(UNUSED char *input, UNUSED int len) {
     aoc_result_t result = {0};
     line_t lines[NUM_LINES];
@@ -46,16 +53,16 @@ aoc_result_t day5(UNUSED char *input, UNUSED int len) {
             int x = line.x0;
             ascending(line.y0, line.y1, &y0, &y1);
             for (int y = y0; y <= y1; y++) {
-                p1[x][y]++;
-                p2[x][y]++;
+                countoverlaps(p1, x, y, &result.p1);
+                countoverlaps(p2, x, y, &result.p2);
             }
         } else if (line.y0 == line.y1) {
             int x0, x1;
             int y = line.y0;
             ascending(line.x0, line.x1, &x0, &x1);
             for (int x = x0; x <= x1; x++) {
-                p1[x][y]++;
-                p2[x][y]++;
+                countoverlaps(p1, x, y, &result.p1);
+                countoverlaps(p2, x, y, &result.p2);
             }
         } else {
             int dx = sign(line.x1 - line.x0);
@@ -64,18 +71,7 @@ aoc_result_t day5(UNUSED char *input, UNUSED int len) {
             for (int l = 0; l <= len; l++) {
                 int x = line.x0 + l * dx;
                 int y = line.y0 + l * dy;
-                p2[x][y]++;
-            }
-        }
-    }
-
-    for (int i = 0; i < 1000; i++) {
-        for (int j = 0; j < 1000; j++) {
-            if (p1[i][j] >= 2) {
-                result.p1++;
-            }
-            if (p2[i][j] >= 2) {
-                result.p2++;
+                countoverlaps(p2, x, y, &result.p2);
             }
         }
     }
