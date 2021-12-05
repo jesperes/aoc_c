@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-g -O3 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude
+CFLAGS=-g -O3 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude -DNUM_REPS=100
 
 # TODO parameterize this on year
 YEAR=2021
@@ -25,14 +25,19 @@ aoc2021: $(OBJECTS) $(INPUTS_OBJ) | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(OBJECTS): build/%.o: src/$(YEAR)/%.c
+$(OBJECTS): build/%.o: src/$(YEAR)/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(INPUTS_OBJ): build/%.o: build/%.c
+$(INPUTS_OBJ): build/%.o: build/%.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(INPUTS_SRC): build/%.c: inputs/$(YEAR)/%.txt | $(BUILD_DIR)
 	cp $< build/ && (cd build && xxd -i $*.txt) > $@
 
+.PHONY: clean
 clean:
 	rm -rf $(BUILD_DIR) aoc$(YEAR)
+
+.PHONY: valgrind
+valgrind:
+	valgrind --max-stackframe=3000000 ./aoc2021

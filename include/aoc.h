@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <time.h>
 
+#ifndef NUM_REPS
+#define NUM_REPS 100
+#endif
+
 #define UNUSED __attribute__((unused))
 
 #define TS_TO_NS(ts) ((ts).tv_sec * 1000000000 + (ts).tv_nsec)
@@ -19,7 +23,7 @@
 
 #define WITH_TIMING(Msg, TotalTime, Expr)                                      \
     do {                                                                       \
-        int reps = 100;                                                        \
+        int reps = NUM_REPS;                                                   \
         struct timespec start, end;                                            \
         clock_gettime(CLOCK_REALTIME, &start);                                 \
         REPEAT(Expr, reps);                                                    \
