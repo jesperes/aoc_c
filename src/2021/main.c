@@ -4,7 +4,9 @@
 
 int main() {
     int64_t total_time = 0;
-    int64_t budget = 1000000000; // 1 second
+
+    // Aim for a total runtime of 50ms.
+    int64_t budget = 50 * 1000000;
 
     RUN_PUZZLE("day1", day1, 2021, 1, aoc_result_t, 1400, 1429, total_time);
     RUN_PUZZLE("day2", day2, 2021, 2, aoc_result_t, 1962940, 1813664422,
@@ -16,5 +18,6 @@ int main() {
     RUN_PUZZLE("day5", day5, 2021, 5, aoc_result_t, 4728, 17717, total_time);
 
     printf("Total: %g msecs\n", total_time / 1000000.0);
-    printf("Budget spent: %ld%%\n", 100 * total_time / budget);
+    printf("Budget (%ld ms) spent: %ld%%\n", budget / 1000000,
+           100 * total_time / budget);
 }
