@@ -1,3 +1,6 @@
+#ifndef _AOC_H
+#define _AOC_H
+
 #include <assert.h>
 #include <inttypes.h>
 #include <stdio.h>
@@ -43,3 +46,5 @@
 typedef struct {
     int64_t p1, p2;
 } aoc_result_t;
+
+#endif

@@ -1,26 +1,38 @@
+CC=clang
+CFLAGS=-g -O3 -Wall -Wextra -Werror -D_GNU_SOURCE -Iinclude
 
-BUILD_DIR=_build
+# TODO parameterize this on year
+YEAR=2021
+BUILD_DIR=build
 
-default:
-	$(MAKE) configure
-	$(MAKE) compile
-	$(MAKE) run
+default: aoc$(YEAR)
+	./aoc$(YEAR)
+
+INPUTS=$(wildcard inputs/$(YEAR)/*.txt)
+INPUTS_SRC=$(INPUTS:inputs/$(YEAR)/%.txt=build/%.c)
+INPUTS_OBJ=$(INPUTS_SRC:build/%.c=build/%.o)
+
+SOURCES=$(wildcard src/$(YEAR)/*.c)
+OBJECTS=$(SOURCES:src/$(YEAR)/%.c=build/%.o)
+
+INCLUDES=include src
+
+$(BUILD_DIR)=build
+
+aoc2021: $(OBJECTS) $(INPUTS_OBJ) | $(BUILD_DIR)
+	$(CC) $^ -o $@
 
 $(BUILD_DIR):
 	mkdir -p $@
 
-.PHONY: configure
-configure: | $(BUILD_DIR)
-	cd $(BUILD_DIR) && cmake ..
+$(OBJECTS): build/%.o: src/$(YEAR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: compile
-compile: | $(BUILD_DIR)
-	cd $(BUILD_DIR) && $(MAKE) -s
+$(INPUTS_OBJ): build/%.o: build/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: run
-run: | $(BUILD_DIR)
-	cd $(BUILD_DIR) && ./aoc2021
+$(INPUTS_SRC): build/%.c: inputs/$(YEAR)/%.txt | $(BUILD_DIR)
+	cp $< build/ && (cd build && xxd -i $*.txt) > $@
 
-.PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(BUILD_DIR) aoc$(YEAR)
