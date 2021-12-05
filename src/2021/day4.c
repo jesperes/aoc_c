@@ -63,8 +63,10 @@ bool is_winner(int numbers[], int played_number_idx, board_t board) {
                     }
                 }
 
-                if (!is_n_played)
+                if (!is_n_played) {
                     is_bingo = false;
+                    break;
+                }
             }
 
             if (is_bingo) {
