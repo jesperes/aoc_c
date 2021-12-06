@@ -17,6 +17,8 @@ int main() {
     RUN_PUZZLE("day4", day4, 2021, 4, aoc_result_t, 33462, 30070, total_time);
 
     RUN_PUZZLE("day5", day5, 2021, 5, aoc_result_t, 4728, 17717, total_time);
+    RUN_PUZZLE("day6", day6, 2021, 6, aoc_result_t, 375482, 1689540415957,
+               total_time);
 
     printf("Total: %g msecs\n", total_time / 1000000.0);
     printf("Budget (%ld ms) spent: %ld%%\n", budget / 1000000,
