@@ -88,23 +88,6 @@ int crabs[] = {
     408,  442,  603,  681,  522,  478,  1072, 527,  1094, 104,  1267, 418,
     730,  217,  1198, 859};
 
-int fuel_pos1(int pos, int crabs[], int len) {
-    int fuel = 0;
-    for (int i = 0; i < len; i++) {
-        fuel += abs(pos - crabs[i]);
-    }
-    return fuel;
-}
-
-int fuel_pos2(int pos, int crabs[], int len) {
-    int fuel = 0;
-    for (int i = 0; i < len; i++) {
-        int l = abs(pos - crabs[i]);
-        fuel += l * (l + 1) / 2;
-    }
-    return fuel;
-}
-
 aoc_result_t day7() {
     aoc_result_t result;
     result.p1 = INT_MAX;
