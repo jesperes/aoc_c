@@ -46,6 +46,15 @@
         });                                                                    \
     } while (0);
 
+#define RUN_PUZZLE_NOINPUT(Msg, Function, ResultType, P1, P2, TotalTime)       \
+    do {                                                                       \
+        WITH_TIMING(Msg, TotalTime, {                                          \
+            ResultType __result = Function();                                  \
+            assert(__result.p1 == P1);                                         \
+            assert(__result.p2 == P2);                                         \
+        });                                                                    \
+    } while (0);
+
 // TODO handle non-integer results
 typedef struct {
     int64_t p1, p2;
