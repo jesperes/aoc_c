@@ -30,7 +30,7 @@
         clock_gettime(CLOCK_REALTIME, &end);                                   \
         int64_t duration = DURATION(start, end) / reps;                        \
         (TotalTime) += duration;                                               \
-        printf("%s: %g usecs\n", Msg, duration / 1000.0);                      \
+        printf("%-6s %10.2f usecs\n", Msg, duration / 1000.0);                 \
     } while (0);
 
 #define RUN_PUZZLE(Msg, Function, Year, Day, ResultType, P1, P2, TotalTime)    \
