@@ -55,6 +55,17 @@
         });                                                                    \
     } while (0);
 
+#define TIMED_BLOCK(var, block)                                                \
+    do {                                                                       \
+        struct timespec start, end;                                            \
+        clock_gettime(CLOCK_REALTIME, &start);                                 \
+        do                                                                     \
+            block while (0);                                                   \
+        clock_gettime(CLOCK_REALTIME, &end);                                   \
+        int64_t duration = DURATION(start, end);                               \
+        var += duration;                                                       \
+    } while (0);
+
 // TODO handle non-integer results
 typedef struct {
     int64_t p1, p2;
