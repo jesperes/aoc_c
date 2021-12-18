@@ -1,5 +1,12 @@
 // Simple hashtable implementation for plain int->int mappings. Uses a very
 // simple linear probing with fixed number of buckets.
+//
+// Originally written to be able to solve 2021 day 13 with reasonable
+// performance.
+//
+// Possible improvements
+// * Deallocate empty buckets when needed
+// * Automatically expanding buckets on-demand
 
 #include "hashtable.h"
 #include <assert.h>
@@ -45,7 +52,6 @@ void ht_put(hashtable_t *ht, int key, int value) {
 
     // allocate entries
     if (bucket->entries == NULL) {
-        // DEBUG_FMT("Allocating bucket at %d\n", bucket_idx);
         bucket->num_entries = ht->default_bucket_size;
         bucket->entries = calloc(bucket->num_entries, sizeof(entry_t));
     }
@@ -53,9 +59,6 @@ void ht_put(hashtable_t *ht, int key, int value) {
     for (int entry_idx = 0; entry_idx < bucket->num_entries; entry_idx++) {
         entry_t *entry = &bucket->entries[entry_idx];
         if (!entry->present) {
-            // DEBUG_FMT("Inserting %d=%d in bucket %d, entry %d\n", key,
-            // value,
-            //           bucket_idx, entry_idx);
             entry->present = true;
             entry->key = key;
             entry->value = value;
@@ -92,25 +95,6 @@ bool ht_get(hashtable_t *ht, int key, int *value) {
     }
 }
 
-void __ht_maybe_delete_bucket(hashtable_t *ht, int bucket_idx) {
-#if 0
-    bucket_t *bucket = &ht->buckets[bucket_idx];
-    int l = bucket->num_entries;
-
-    for (int entry_idx = 0; entry_idx < l; entry_idx++) {
-        entry_t *entry = &bucket->entries[entry_idx];
-        if (entry->present) {
-            return;
-        }
-    }
-
-    // Bucket is empty, free up the entries list.
-    // DEBUG_FMT("Deleting bucket at %d\n", bucket_idx);
-    free(bucket->entries);
-    bucket->entries = NULL;
-#endif
-}
-
 bool ht_delete(hashtable_t *ht, int key) {
     uint32_t bucket_idx = __ht_bucket_idx(key, ht->num_buckets);
     bucket_t *bucket = &ht->buckets[bucket_idx];
@@ -124,9 +108,6 @@ bool ht_delete(hashtable_t *ht, int key) {
             } else if (entry->key == key) {
                 entry->present = false;
                 ht->total_entries--;
-                // TODO track number of present entries, so we don't need to
-                // scan here
-                __ht_maybe_delete_bucket(ht, bucket_idx);
                 return true;
             }
         }
@@ -168,7 +149,6 @@ void ht_traverse(hashtable_t *ht, ht_traverse_func_t func, void *data) {
                 if (!entry->present) {
                     // Traverse function marked entry for deletion.
                     ht->total_entries--;
-                    __ht_maybe_delete_bucket(ht, b);
                 }
 
                 if (!should_continue)

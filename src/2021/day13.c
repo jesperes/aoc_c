@@ -29,9 +29,9 @@ int num_instrs = 12;
 
 typedef int32_t coord_t;
 
-// We cannot insert keys safely during traversal, so insert all the coordinates
-// to fold into an array, and perform the insertions of the new coordinates
-// afterwards.
+// We cannot insert keys safely when traversing the hashtable, so insert all the
+// coordinates to fold into an array, and perform the insertions of the new
+// coordinates afterwards.
 typedef struct {
     int instr_idx;
     int new_coords_idx;
@@ -132,7 +132,6 @@ aoc_result_int_string_t day13(char *ptr, int len) {
     // Parse coordinates
     char *p = ptr;
     while (true) {
-        // int i = num_coords++;
         int x = strtol(p, &p, 10);
         p++; // skip ","
         int y = strtol(p, &p, 10);
