@@ -1,4 +1,5 @@
 
+#include "compare.h"
 #include <aoc.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -41,12 +42,6 @@ int fill(coord_t coord) {
 
         return size;
     }
-}
-
-int int_compare(const void *p1, const void *p2) {
-    int x = *(int *)p1;
-    int y = *(int *)p2;
-    return (x < y) - (x > y);
 }
 
 aoc_result_t day9(char *orig_ptr, UNUSED int len) {
@@ -96,7 +91,7 @@ aoc_result_t day9(char *orig_ptr, UNUSED int len) {
         sizes[i] = fill(low_points[i]);
     }
 
-    qsort(sizes, num_lp, sizeof(*sizes), int_compare);
+    qsort(sizes, num_lp, sizeof(*sizes), int_compare_desc);
     result.p2 = sizes[0] * sizes[1] * sizes[2];
 
     return result;

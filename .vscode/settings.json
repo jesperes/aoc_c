@@ -1,6 +1,15 @@
 {
     "editor.formatOnSave": true,
     "C_Cpp.default.includePath": [
-        "include"
-    ]
+        "include",
+        "src/utils"
+    ],
+    "files.associations": {
+        "erlang_ls.config": "yaml",
+        "rebar.config*": "erlang",
+        "*.ymlt": "yaml",
+        "*.ymlv": "yaml",
+        "*.eterm": "erlang",
+        "aoc.h": "c"
+    }
 }

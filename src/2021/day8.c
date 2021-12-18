@@ -1,3 +1,4 @@
+#include "compare.h"
 #include <aoc.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -198,12 +199,6 @@ void deduce(display_t *display, char mapping[7]) {
     }
 }
 
-int char_compare(const void *p1, const void *p2) {
-    char x = *(char *)p1;
-    char y = *(char *)p2;
-    return (x > y) - (x < y);
-}
-
 char mapchar(char mapping[8], char c) {
     int mask = mapping[c - 'a'] & 0x7f;
     return mask_to_char(mask);
@@ -218,7 +213,7 @@ int segments_to_num(char mapping[7], char *digit) {
         remapped[k++] = mapchar(mapping, digit[i]);
     }
 
-    qsort(remapped, len, 1, char_compare);
+    qsort(remapped, len, 1, char_compare_asc);
 
     if (strcmp(remapped, "abcefg") == 0) {
         return 0;
