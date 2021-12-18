@@ -7,6 +7,7 @@
 // Possible improvements
 // * Deallocate empty buckets when needed
 // * Automatically expanding buckets on-demand
+// * Replace this with glibc's hsearch() family of functions?
 
 #include "hashtable.h"
 #include <assert.h>

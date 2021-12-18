@@ -1,5 +1,11 @@
+WARNINGS= -Wall -Werror -pedantic -Wno-gnu-empty-initializer
+DEFINES= -D_GNU_SOURCE -DNUM_REPS=1
+INCLUDES= -Iinclude -Isrc/utils
+
 CC=clang
-CFLAGS=-g -Ofast -march=native -MD -Wall  -Werror -D_GNU_SOURCE -Iinclude -Isrc/utils -DNUM_REPS=1
+CFLAGS=-g -Ofast -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
+
+.SILENT:
 
 # TODO parameterize this on year
 YEAR=2021
@@ -23,29 +29,33 @@ DEPS=$(OBJECTS:%.o=%.d) $(UTILS_OBJ:%.o=%.d)
 
 -include $(DEPS)
 
-INCLUDES=include src
-
 $(BUILD_DIR)=build
 
 build/libutils.a: $(UTILS_OBJ)
+	echo "AR\t$^"
 	ar rcs $@ $^
 
 aoc2021: $(OBJECTS) $(INPUTS_OBJ) $(LIBS) | $(BUILD_DIR)
+	echo "LD\t$^"
 	$(CC) $^ $(LIBS) -o $@
 
 $(BUILD_DIR):
 	mkdir -p $@
 
 $(UTILS_OBJ): build/%.o: src/utils/%.c | $(BUILD_DIR)
+	echo "CC\t$^"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJECTS): build/%.o: src/$(YEAR)/%.c | $(BUILD_DIR)
+	echo "CC\t$^"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(INPUTS_OBJ): build/%.o: build/%.c | $(BUILD_DIR)
+	echo "CC\t$^"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(INPUTS_SRC): build/%.c: inputs/$(YEAR)/%.txt | $(BUILD_DIR)
+	echo "XXD\t$^"
 	cp $< build/ && (cd build && xxd -i $*.txt) > $@
 
 .PHONY: clean
