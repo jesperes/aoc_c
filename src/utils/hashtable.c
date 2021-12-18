@@ -16,14 +16,14 @@
 #include <stdlib.h>
 
 // https://stackoverflow.com/a/12996028/13051/
-uint32_t __ht_hash(key_t x) {
+uint32_t __ht_hash(ht_key_t x) {
     x = ((x >> 16) ^ x) * 0x45d9f3b;
     x = ((x >> 16) ^ x) * 0x45d9f3b;
     x = (x >> 16) ^ x;
     return x;
 }
 
-uint32_t __ht_bucket_idx(key_t key, int num_buckets) {
+uint32_t __ht_bucket_idx(ht_key_t key, int num_buckets) {
     return __ht_hash(key) % num_buckets;
 }
 
@@ -47,7 +47,7 @@ void ht_deinit(hashtable_t *ht) {
     free(ht->buckets);
 }
 
-void ht_put(hashtable_t *ht, int key, int value) {
+void ht_put(hashtable_t *ht, ht_key_t key, ht_key_t value) {
     uint32_t bucket_idx = __ht_bucket_idx(key, ht->num_buckets);
     bucket_t *bucket = &ht->buckets[bucket_idx];
 
@@ -72,7 +72,7 @@ void ht_put(hashtable_t *ht, int key, int value) {
     assert("bucket full" && false);
 }
 
-bool ht_get(hashtable_t *ht, int key, int *value) {
+bool ht_get(hashtable_t *ht, ht_key_t key, ht_value_t *value) {
     uint32_t bucket_idx = __ht_bucket_idx(key, ht->num_buckets);
     bucket_t *bucket = &ht->buckets[bucket_idx];
     if (bucket == NULL) {
@@ -96,7 +96,7 @@ bool ht_get(hashtable_t *ht, int key, int *value) {
     }
 }
 
-bool ht_delete(hashtable_t *ht, int key) {
+bool ht_delete(hashtable_t *ht, ht_key_t key) {
     uint32_t bucket_idx = __ht_bucket_idx(key, ht->num_buckets);
     bucket_t *bucket = &ht->buckets[bucket_idx];
     if (bucket == NULL) {
@@ -159,7 +159,7 @@ void ht_traverse(hashtable_t *ht, ht_traverse_func_t func, void *data) {
     }
 }
 
-bool ht_has_key(hashtable_t *ht, int key) {
+bool ht_has_key(hashtable_t *ht, ht_key_t key) {
     uint32_t bucket_idx = __ht_bucket_idx(key, ht->num_buckets);
     bucket_t *bucket = &ht->buckets[bucket_idx];
     if (bucket == NULL) {
@@ -190,7 +190,7 @@ void hashtable_self_test() {
     }
 
     ht_put(&ht, 123, 456);
-    int value;
+    ht_value_t value;
     assert(ht_get(&ht, 123, &value));
     assert(value == 456);
 

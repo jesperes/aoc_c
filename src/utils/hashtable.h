@@ -3,13 +3,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef int key_t;
-typedef int value_t;
+typedef uint32_t ht_key_t;
+typedef uint32_t ht_value_t;
 
 typedef struct {
     bool present;
-    key_t key;
-    value_t value;
+    ht_key_t key;
+    ht_value_t value;
 } entry_t;
 
 typedef struct {
@@ -26,10 +26,10 @@ typedef struct {
 
 void ht_init(hashtable_t *ht, int buckets, int default_bucket_size);
 void ht_deinit(hashtable_t *ht);
-void ht_put(hashtable_t *ht, int key, int value);
-bool ht_get(hashtable_t *ht, int key, int *value);
-bool ht_delete(hashtable_t *ht, int key);
-bool ht_has_key(hashtable_t *ht, int key);
+void ht_put(hashtable_t *ht, ht_key_t key, ht_value_t value);
+bool ht_get(hashtable_t *ht, ht_key_t key, ht_value_t *value);
+bool ht_delete(hashtable_t *ht, ht_key_t key);
+bool ht_has_key(hashtable_t *ht, ht_key_t key);
 
 // Function declaration for traversing all entries. Invoked for all entries.
 // Traversal stops if function return false.

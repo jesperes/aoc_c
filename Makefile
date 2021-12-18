@@ -11,7 +11,8 @@ CFLAGS=-g -Ofast -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
 YEAR=2021
 BUILD_DIR=build
 
-default: aoc$(YEAR)
+default:
+	$(MAKE) aoc$(YEAR) cppcheck
 	./aoc$(YEAR)
 
 UTILS_SRC=$(wildcard src/utils/*.c)
@@ -63,5 +64,11 @@ clean:
 	rm -rf $(BUILD_DIR) aoc$(YEAR)
 
 .PHONY: valgrind
-valgrind: aoc2021
+valgrind:
+	$(MAKE) aoc2021
 	valgrind --max-stackframe=3000000 --leak-check=full ./aoc2021
+
+.PHONY: cppcheck
+cppcheck:
+	echo "CPPCHECK"
+	cppcheck -q -j$(shell nproc) $(INPUTS_SRC) $(SOURCES) $(UTILS_SRC)
