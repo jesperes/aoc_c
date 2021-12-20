@@ -10,6 +10,11 @@
         "*.ymlt": "yaml",
         "*.ymlv": "yaml",
         "*.eterm": "erlang",
-        "aoc.h": "c"
+        "aoc.h": "c",
+        "cstddef": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c"
     }
 }

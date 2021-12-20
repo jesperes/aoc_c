@@ -1,4 +1,4 @@
-WARNINGS= -Wall -Werror -pedantic -Wno-gnu-empty-initializer
+WARNINGS= -Wall -Werror -Wno-gnu-empty-initializer
 DEFINES= -D_GNU_SOURCE -DNUM_REPS=1
 INCLUDES= -Iinclude -Isrc/utils
 

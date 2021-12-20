@@ -47,6 +47,8 @@ int main() {
                "FPEKBEJL", assert_int64, assert_string, total_time);
     RUN_PUZZLE_INT64("day14", day14, 2021, 14, aoc_result_t, 3831,
                      5725739914282LL, total_time);
+    RUN_PUZZLE_INT64("day15", day15, 2021, 15, aoc_result_t, 386, 2806,
+                     total_time);
     aoc_result_t day12(char *ptr, int len);
 
     printf("Total: %g msecs\n", total_time / 1000000.0);
