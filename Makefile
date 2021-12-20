@@ -12,7 +12,8 @@ YEAR=2021
 BUILD_DIR=build
 
 default:
-	$(MAKE) aoc$(YEAR) cppcheck
+	$(MAKE) aoc$(YEAR)
+	$(MAKE) cppcheck
 	./aoc$(YEAR)
 
 UTILS_SRC=$(wildcard src/utils/*.c)
@@ -44,19 +45,19 @@ $(BUILD_DIR):
 	mkdir -p $@
 
 $(UTILS_OBJ): build/%.o: src/utils/%.c | $(BUILD_DIR)
-	echo "CC\t$^"
+	echo "CC\t$<"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJECTS): build/%.o: src/$(YEAR)/%.c | $(BUILD_DIR)
-	echo "CC\t$^"
+	echo "CC\t$<"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(INPUTS_OBJ): build/%.o: build/%.c | $(BUILD_DIR)
-	echo "CC\t$^"
+	echo "CC\t$<"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(INPUTS_SRC): build/%.c: inputs/$(YEAR)/%.txt | $(BUILD_DIR)
-	echo "XXD\t$^"
+	echo "XXD\t$<"
 	cp $< build/ && (cd build && xxd -i $*.txt) > $@
 
 .PHONY: clean
