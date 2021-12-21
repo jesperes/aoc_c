@@ -1,5 +1,5 @@
 WARNINGS= -Wall -Werror -Wno-gnu-empty-initializer
-DEFINES= -D_GNU_SOURCE -DNUM_REPS=1
+DEFINES= -D_GNU_SOURCE -DNUM_REPS=10
 INCLUDES= -Iinclude -Isrc/utils
 
 CC=clang

@@ -28,9 +28,9 @@ int64_t queue_pop(queue_t *queue) {
     return elem;
 }
 
+// This does not, of course, scale. For day 15, we are 3x slower than the Erlang
+// solution because we spend lots of time sorting and resorting the queue.
 void queue_sort(queue_t *queue) {
-    //    printf("Sorting from index %d + %d elems\n", queue->head,
-    //    queue->num_elems),
     qsort(&queue->array[queue->head], queue->num_elems, sizeof(int64_t),
           int64_t_compare_asc);
 }

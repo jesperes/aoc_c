@@ -1,7 +1,7 @@
 #include "aoc.h"
+#include "btree.h"
 #include "compare.h"
 #include "hashtable.h"
-#include "queue.h"
 #include <limits.h>
 #include <stdlib.h>
 
@@ -41,7 +41,6 @@ gscore_entry_t gscore_entry(int x, int y) {
 
 #define WIDTH 100
 #define HEIGHT 100
-#define QUEUE_SIZE (WIDTH) * (WIDTH) * (100)
 #define READ_POS(X, Y, input) (input[(Y) * (WIDTH + 1) + (X)] - '0')
 #define IS_GOAL(X, Y, Tiles)                                                   \
     (((X) == WIDTH * Tiles - 1) && (((Y) == HEIGHT * Tiles - 1)))
@@ -61,49 +60,38 @@ int64_t lower_bound_dist_to_goal(int16_t x, int16_t y, int tiles) {
     return abs(goal_x - x) + abs(goal_y - y);
 }
 
-int find(const char *input, int tiles) {
+int queue_compare_fun(const void *a, const void *b, UNUSED void *data) {
+    queue_entry_t *entry_a = (queue_entry_t *)a;
+    queue_entry_t *entry_b = (queue_entry_t *)b;
+    return (*int64_t_compare_asc)(&entry_a->packed, &entry_b->packed);
+}
+
+int day15_find(const char *input, int tiles) {
 
     hashtable_t gs;
-    ht_init(&gs, 10000, 100);
+    ht_init(&gs, 1000000, 10);
     ht_put(&gs, gscore_entry(0, 0).packed, 0);
 
-    queue_t queue;
-    queue_init(&queue, QUEUE_SIZE);
+    struct btree *queue =
+        btree_new(sizeof(queue_entry_t), 16, queue_compare_fun, NULL);
 
     int width = WIDTH * tiles;
     int height = HEIGHT * tiles;
 
-#if 0
-    {
-        // Queue self-test
-        queue_entry_t entry_in = queue_entry(123, 456, 789);
-        queue_entry_t entry_out = {0};
-        queue_push(&queue, entry_in.packed);
-        entry_out.packed = queue_pop(&queue);
-        assert(entry_out.fields.dist == entry_in.fields.dist);
-        assert(entry_out.fields.x == entry_in.fields.x);
-        assert(entry_out.fields.y == entry_in.fields.y);
-        assert(queue_is_empty(&queue));
-    }
-#endif
+    queue_entry_t start_elem =
+        queue_entry(lower_bound_dist_to_goal(0, 0, tiles), 0, 0);
+    btree_set(queue, &start_elem.packed);
 
-    queue_push(&queue,
-               queue_entry(lower_bound_dist_to_goal(0, 0, tiles), 0, 0).packed);
-
-    while (!queue_is_empty(&queue)) {
-        queue_entry_t current;
-        current.packed = queue_pop(&queue);
+    while (btree_count(queue) > 0) {
+        queue_entry_t current = *(queue_entry_t *)btree_pop_min(queue);
 
         assert(current.fields.dist >= 0);
         assert(current.fields.x >= 0 && current.fields.y < width);
         assert(current.fields.y >= 0 && current.fields.y < height);
 
-        // printf("queue size: %d\n", QUEUE_NUM_ELEMS(&queue));
-
-        // printf("curr={%d,%d} dist=%u packed=%lx\n", current.fields.x,
-        //        current.fields.y, current.fields.dist, current.packed);
-
         if (IS_GOAL(current.fields.x, current.fields.y, tiles)) {
+            btree_free(queue);
+            ht_deinit(&gs);
             return current.fields.dist;
         }
 
@@ -128,8 +116,6 @@ int find(const char *input, int tiles) {
                     gscore_entry(current.fields.x, current.fields.y).packed,
                     &current_gscore));
 
-                //                printf("%d,%d\n", dx, dy);
-
                 // Compute old gscore for neighbor, if any. Set to UINT_MAX if
                 // not found.
                 unsigned int nbr_old_gscore = 0;
@@ -146,31 +132,16 @@ int find(const char *input, int tiles) {
 
                 if (maybe_new_gscore < nbr_old_gscore) {
                     int better_score = maybe_new_gscore;
-                    // printf("current_gscore {%d,%d} = %d, edge_weight {%d,%d}
-                    // = "
-                    //        "%d\n",
-                    //        current.fields.x, current.fields.y,
-                    //        current_gscore, xa, ya, ew);
-
-                    // printf("gscore {%d,%d} = %d\n", xa, ya, better_score);
                     ht_put(&gs, gscore_entry(xa, ya).packed, better_score);
-
                     int16_t new_dist =
                         better_score + lower_bound_dist_to_goal(xa, ya, tiles);
-
                     queue_entry_t entry = queue_entry(new_dist, xa, ya);
-
-                    // printf("push={%d,%d} dist=%u (better=%u) packed=%lx\n",
-                    //        entry.fields.x, entry.fields.y, entry.fields.dist,
-                    //        better_score, entry.packed);
-
-                    queue_push(&queue, entry.packed);
+                    btree_set(queue, &entry.packed);
                 }
             }
         }
-
-        queue_sort(&queue);
     }
+
     assert("queue is empty without finding a result" && 0);
 }
 
@@ -183,7 +154,7 @@ aoc_result_t day15(const char *input, int len) {
     assert(READ_POS(0, WIDTH - 1, input) == 8);
     assert(READ_POS(WIDTH - 1, WIDTH - 1, input) == 4);
 
-    result.p1 = find(input, 1);
-    result.p2 = find(input, 5);
+    result.p1 = day15_find(input, 1);
+    result.p2 = day15_find(input, 5);
     return result;
 }
