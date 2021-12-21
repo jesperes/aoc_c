@@ -59,7 +59,7 @@ void ht_put(hashtable_t *ht, ht_key_t key, ht_key_t value) {
 
     for (int entry_idx = 0; entry_idx < bucket->num_entries; entry_idx++) {
         entry_t *entry = &bucket->entries[entry_idx];
-        if (!entry->present) {
+        if (!entry->present || (entry->present && entry->key == key)) {
             entry->present = true;
             entry->key = key;
             entry->value = value;

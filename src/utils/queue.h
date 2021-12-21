@@ -16,3 +16,5 @@ int64_t queue_pop(queue_t *queue);
 void queue_sort(queue_t *queue);
 bool queue_is_empty(queue_t *queue);
 void queue_print(queue_t *queue);
+
+#define QUEUE_NUM_ELEMS(queue) ((queue)->num_elems)
