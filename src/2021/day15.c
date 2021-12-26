@@ -79,6 +79,7 @@ int day15_find(const char *input, int tiles) {
 
         if (IS_GOAL(x, y, tiles)) {
             btree_free(queue);
+            free(gs);
             return current.fields.dist;
         }
 
