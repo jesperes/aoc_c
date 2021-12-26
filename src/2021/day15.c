@@ -85,9 +85,11 @@ int day15_find(const char *input, int tiles) {
     while (btree_count(queue) > 0) {
         queue_entry_t current = *(queue_entry_t *)btree_pop_min(queue);
 
+#if 0
         assert(current.fields.dist >= 0);
         assert(current.fields.x >= 0 && current.fields.y < width);
         assert(current.fields.y >= 0 && current.fields.y < height);
+#endif
 
         if (IS_GOAL(current.fields.x, current.fields.y, tiles)) {
             btree_free(queue);
@@ -118,9 +120,10 @@ int day15_find(const char *input, int tiles) {
 
                 // Compute old gscore for neighbor, if any. Set to UINT_MAX if
                 // not found.
+                int64_t gscore_entry_packed = gscore_entry(xa, ya).packed;
                 unsigned int nbr_old_gscore = 0;
                 bool nbr_has_gscore =
-                    ht_get(&gs, gscore_entry(xa, ya).packed, &nbr_old_gscore);
+                    ht_get(&gs, gscore_entry_packed, &nbr_old_gscore);
                 if (!nbr_has_gscore)
                     nbr_old_gscore = UINT_MAX;
 
@@ -132,7 +135,7 @@ int day15_find(const char *input, int tiles) {
 
                 if (maybe_new_gscore < nbr_old_gscore) {
                     int better_score = maybe_new_gscore;
-                    ht_put(&gs, gscore_entry(xa, ya).packed, better_score);
+                    ht_put(&gs, gscore_entry_packed, better_score);
                     int16_t new_dist =
                         better_score + lower_bound_dist_to_goal(xa, ya, tiles);
                     queue_entry_t entry = queue_entry(new_dist, xa, ya);

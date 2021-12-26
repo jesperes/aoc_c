@@ -23,9 +23,7 @@ uint32_t __ht_hash(ht_key_t x) {
     return x;
 }
 
-uint32_t __ht_bucket_idx(ht_key_t key, int num_buckets) {
-    return __ht_hash(key) % num_buckets;
-}
+#define __ht_bucket_idx(key, num_buckets) (__ht_hash(key) % (num_buckets))
 
 void ht_init(hashtable_t *ht, int num_buckets, int default_bucket_size) {
     ht->num_buckets = num_buckets;
@@ -75,25 +73,19 @@ void ht_put(hashtable_t *ht, ht_key_t key, ht_key_t value) {
 bool ht_get(hashtable_t *ht, ht_key_t key, ht_value_t *value) {
     uint32_t bucket_idx = __ht_bucket_idx(key, ht->num_buckets);
     bucket_t *bucket = &ht->buckets[bucket_idx];
-    if (bucket == NULL) {
-        return false;
-    } else {
-        for (int entry_idx = 0; entry_idx < bucket->num_entries; entry_idx++) {
-            if (bucket->entries == NULL) {
-                // bucket is empty
-                return false;
-            }
-
-            entry_t *entry = &bucket->entries[entry_idx];
-            if (!entry->present) {
-                continue;
-            } else if (entry->key == key) {
-                *value = entry->value;
-                return true;
-            }
-        }
+    if (bucket == NULL || bucket->entries == NULL) {
         return false;
     }
+    for (int entry_idx = 0; entry_idx < bucket->num_entries; entry_idx++) {
+        entry_t *entry = &bucket->entries[entry_idx];
+        if (!entry->present) {
+            continue;
+        } else if (entry->key == key) {
+            *value = entry->value;
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ht_delete(hashtable_t *ht, ht_key_t key) {
