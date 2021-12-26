@@ -1,7 +1,6 @@
 #include "aoc.h"
 #include "btree.h"
 #include "compare.h"
-#include "hashtable.h"
 #include <limits.h>
 #include <stdlib.h>
 
@@ -24,26 +23,17 @@ queue_entry_t queue_entry(uint16_t dist, int16_t x, int16_t y) {
     return entry;
 }
 
-typedef union {
-    uint32_t packed;
-    struct {
-        int16_t x;
-        int16_t y;
-    } fields;
-} gscore_entry_t;
-
-gscore_entry_t gscore_entry(int x, int y) {
-    gscore_entry_t entry;
-    entry.fields.x = x;
-    entry.fields.y = y;
-    return entry;
-}
-
 #define WIDTH 100
 #define HEIGHT 100
 #define READ_POS(X, Y, input) (input[(Y) * (WIDTH + 1) + (X)] - '0')
 #define IS_GOAL(X, Y, Tiles)                                                   \
     (((X) == WIDTH * Tiles - 1) && (((Y) == HEIGHT * Tiles - 1)))
+
+#define GSCORE(x, y, tiles, gs) (gs[(y) * (WIDTH * tiles) + (x)])
+
+struct {
+    int dx, dy;
+} day15_deltas[] = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
 int edge_weight(int16_t x, int16_t y, const char *input, int tiles) {
     int16_t x0 = x % WIDTH;
@@ -66,97 +56,62 @@ int queue_compare_fun(const void *a, const void *b, UNUSED void *data) {
     return (*int64_t_compare_asc)(&entry_a->packed, &entry_b->packed);
 }
 
+/*
+ * A* search for the shortest path.
+ */
 int day15_find(const char *input, int tiles) {
-
-    hashtable_t gs;
-    ht_init(&gs, 1000000, 10);
-    ht_put(&gs, gscore_entry(0, 0).packed, 0);
-
-    struct btree *queue =
-        btree_new(sizeof(queue_entry_t), 16, queue_compare_fun, NULL);
-
     int width = WIDTH * tiles;
     int height = HEIGHT * tiles;
+
+    uint16_t *gs = calloc(WIDTH * HEIGHT * tiles * tiles, sizeof(uint16_t));
+    GSCORE(0, 0, tiles, gs) = 0;
+
+    struct btree *queue =
+        btree_new(sizeof(queue_entry_t), 0, queue_compare_fun, NULL);
 
     queue_entry_t start_elem =
         queue_entry(lower_bound_dist_to_goal(0, 0, tiles), 0, 0);
     btree_set(queue, &start_elem.packed);
 
-    while (btree_count(queue) > 0) {
+    while (true) {
         queue_entry_t current = *(queue_entry_t *)btree_pop_min(queue);
+        int16_t x = current.fields.x;
+        int16_t y = current.fields.y;
 
-#if 0
-        assert(current.fields.dist >= 0);
-        assert(current.fields.x >= 0 && current.fields.y < width);
-        assert(current.fields.y >= 0 && current.fields.y < height);
-#endif
-
-        if (IS_GOAL(current.fields.x, current.fields.y, tiles)) {
+        if (IS_GOAL(x, y, tiles)) {
             btree_free(queue);
-            ht_deinit(&gs);
             return current.fields.dist;
         }
 
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
+        uint16_t current_gscore = GSCORE(x, y, tiles, gs);
 
-                if ((dx == 0 && dy == 0) || (dx != 0 && dy != 0)) {
-                    // skip diagonals
-                    continue;
-                }
+        for (int i = 0; i < 4; i++) {
+            int16_t xa = x + day15_deltas[i].dx;
+            int16_t ya = y + day15_deltas[i].dy;
 
-                int16_t xa = current.fields.x + dx;
-                int16_t ya = current.fields.y + dy;
+            if (!(xa >= 0 && xa < width && ya >= 0 && ya < height))
+                continue;
 
-                if (!(xa >= 0 && xa < width && ya >= 0 && ya < height)) {
-                    continue;
-                }
+            uint16_t nbr_old_gscore = GSCORE(xa, ya, tiles, gs);
+            if (nbr_old_gscore == 0)
+                nbr_old_gscore = UINT16_MAX;
 
-                unsigned int current_gscore = 0;
-                assert(ht_get(
-                    &gs,
-                    gscore_entry(current.fields.x, current.fields.y).packed,
-                    &current_gscore));
+            int ew = edge_weight(xa, ya, input, tiles);
+            int maybe_new_gscore = current_gscore + ew;
 
-                // Compute old gscore for neighbor, if any. Set to UINT_MAX if
-                // not found.
-                int64_t gscore_entry_packed = gscore_entry(xa, ya).packed;
-                unsigned int nbr_old_gscore = 0;
-                bool nbr_has_gscore =
-                    ht_get(&gs, gscore_entry_packed, &nbr_old_gscore);
-                if (!nbr_has_gscore)
-                    nbr_old_gscore = UINT_MAX;
-
-                // Compute possible new gscore from the current node's gscore
-                // and the edge weight. If this is better than the previous
-                // gscore, we have found a new better way to the current node.
-                int ew = edge_weight(xa, ya, input, tiles);
-                int maybe_new_gscore = current_gscore + ew;
-
-                if (maybe_new_gscore < nbr_old_gscore) {
-                    int better_score = maybe_new_gscore;
-                    ht_put(&gs, gscore_entry_packed, better_score);
-                    int16_t new_dist =
-                        better_score + lower_bound_dist_to_goal(xa, ya, tiles);
-                    queue_entry_t entry = queue_entry(new_dist, xa, ya);
-                    btree_set(queue, &entry.packed);
-                }
+            if (maybe_new_gscore < nbr_old_gscore) {
+                GSCORE(xa, ya, tiles, gs) = maybe_new_gscore;
+                int16_t new_dist =
+                    maybe_new_gscore + lower_bound_dist_to_goal(xa, ya, tiles);
+                queue_entry_t entry = queue_entry(new_dist, xa, ya);
+                btree_set(queue, &entry.packed);
             }
         }
     }
-
-    assert("queue is empty without finding a result" && 0);
 }
 
 aoc_result_t day15(const char *input, int len) {
     aoc_result_t result = {0};
-
-    assert(input[WIDTH] == '\n');
-    assert(READ_POS(0, 0, input) == 2);
-    assert(READ_POS(WIDTH - 1, 0, input) == 4);
-    assert(READ_POS(0, WIDTH - 1, input) == 8);
-    assert(READ_POS(WIDTH - 1, WIDTH - 1, input) == 4);
-
     result.p1 = day15_find(input, 1);
     result.p2 = day15_find(input, 5);
     return result;
