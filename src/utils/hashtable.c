@@ -173,30 +173,3 @@ bool ht_has_key(hashtable_t *ht, ht_key_t key) {
         return false;
     }
 }
-
-void hashtable_self_test() {
-    hashtable_t ht;
-    ht_init(&ht, 20, 10);
-    for (int i = 42; i < 1000; i += 13) {
-        ht_put(&ht, i, i * 2);
-    }
-
-    ht_put(&ht, 123, 456);
-    ht_value_t value;
-    assert(ht_get(&ht, 123, &value));
-    assert(value == 456);
-
-    // delete and check that the key is no longer present
-    assert(ht_delete(&ht, 123));
-    assert(!ht_get(&ht, 123, &value));
-
-#if 0
-    int num_entries;
-    entry_t *entries = ht_get_entries(&ht, &num_entries);
-    for (int i = 0; i < num_entries; i++) {
-        entry_t *entry = &entries[i];
-        printf("Entry[%d] = %d\n", entry->key, entry->value);
-    }
-#endif
-    ht_deinit(&ht);
-}

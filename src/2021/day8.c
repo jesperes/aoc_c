@@ -237,6 +237,7 @@ int segments_to_num(char mapping[7], char *digit) {
         return 9;
     } else {
         assert(0);
+        return -1;
     }
 }
 

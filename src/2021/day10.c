@@ -40,6 +40,7 @@ char other(char c) {
         return '>';
     default:
         assert(0);
+        return -1;
     }
 }
 
@@ -75,7 +76,7 @@ int syntax_score(char c) {
         return 25137;
     default:
         assert(0);
-        break;
+        return -1;
     }
 }
 
@@ -91,7 +92,7 @@ int64_t completion_value(char c) {
         return 4;
     default:
         assert(0);
-        break;
+        return -1;
     }
 }
 
