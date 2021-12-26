@@ -1,10 +1,11 @@
-NUM_REPS=5
+NUM_REPS=1
 WARNINGS= -Wall -Werror -Wno-gnu-empty-initializer
 DEFINES= -D_GNU_SOURCE -DNUM_REPS=$(NUM_REPS)
 INCLUDES= -Iinclude -Isrc/utils
 
 CC=clang
-CFLAGS=-g -Ofast -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
+# CFLAGS=-g -Ofast -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
+CFLAGS=-g -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
 
 # TODO parameterize this on year
 YEAR=2021

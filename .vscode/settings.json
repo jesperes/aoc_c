@@ -15,6 +15,11 @@
         "functional": "c",
         "tuple": "c",
         "type_traits": "c",
-        "utility": "c"
+        "utility": "c",
+        "bit": "c",
+        "cwchar": "c",
+        "random": "c",
+        "limits": "c",
+        "ratio": "c"
     }
 }

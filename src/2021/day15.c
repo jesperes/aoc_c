@@ -25,10 +25,9 @@ queue_entry_t queue_entry(uint16_t dist, int16_t x, int16_t y) {
 
 #define WIDTH 100
 #define HEIGHT 100
-#define READ_POS(X, Y, input) (input[(Y) * (WIDTH + 1) + (X)] - '0')
-#define IS_GOAL(X, Y, Tiles)                                                   \
-    (((X) == WIDTH * Tiles - 1) && (((Y) == HEIGHT * Tiles - 1)))
-
+#define READ_POS(x, y, input) (input[(y) * (WIDTH + 1) + (x)] - '0')
+#define IS_GOAL(x, y, tiles)                                                   \
+    (((x) == WIDTH * tiles - 1) && (((y) == HEIGHT * tiles - 1)))
 #define GSCORE(x, y, tiles, gs) (gs[(y) * (WIDTH * tiles) + (x)])
 
 struct {
@@ -92,19 +91,18 @@ int day15_find(const char *input, int tiles) {
             if (!(xa >= 0 && xa < width && ya >= 0 && ya < height))
                 continue;
 
-            uint16_t nbr_old_gscore = GSCORE(xa, ya, tiles, gs);
-            if (nbr_old_gscore == 0)
-                nbr_old_gscore = UINT16_MAX;
+            uint16_t old_gscore = GSCORE(xa, ya, tiles, gs);
+            if (old_gscore == 0)
+                old_gscore = UINT16_MAX;
 
-            int ew = edge_weight(xa, ya, input, tiles);
-            int maybe_new_gscore = current_gscore + ew;
-
-            if (maybe_new_gscore < nbr_old_gscore) {
-                GSCORE(xa, ya, tiles, gs) = maybe_new_gscore;
+            uint16_t new_gscore =
+                current_gscore + edge_weight(xa, ya, input, tiles);
+            if (new_gscore < old_gscore) {
+                GSCORE(xa, ya, tiles, gs) = new_gscore;
                 int16_t new_dist =
-                    maybe_new_gscore + lower_bound_dist_to_goal(xa, ya, tiles);
-                queue_entry_t entry = queue_entry(new_dist, xa, ya);
-                btree_set(queue, &entry.packed);
+                    new_gscore + lower_bound_dist_to_goal(xa, ya, tiles);
+                int64_t packed = queue_entry(new_dist, xa, ya).packed;
+                btree_set(queue, &packed);
             }
         }
     }
