@@ -49,6 +49,8 @@ int main() {
                      total_time);
     RUN_PUZZLE_INT64("day16", day16, 2021, 16, aoc_result_t, 927, 1725277876501,
                      total_time);
+    RUN_PUZZLE_NOINPUT_INT64("day17", day17, aoc_result_t, 30628, 4433,
+                             total_time);
 
     aoc_result_t day12(char *ptr, int len);
 

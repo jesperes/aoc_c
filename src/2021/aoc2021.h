@@ -19,5 +19,6 @@ aoc_result_int_string_t day13(char *ptr, int len);
 aoc_result_t day14(char *ptr, int len);
 aoc_result_t day15(char *ptr, int len);
 aoc_result_t day16(char *ptr, int len);
+aoc_result_t day17();
 
 #endif
