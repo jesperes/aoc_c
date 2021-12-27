@@ -51,7 +51,12 @@ int main() {
                      total_time);
     RUN_PUZZLE_NOINPUT_INT64("day17", day17, aoc_result_t, 30628, 4433,
                              total_time);
-
+    RUN_PUZZLE_INT64("day25", day25, 2021, 25, aoc_result_t, 295, 0,
+                     total_time);
+#if 0
+    RUN_PUZZLE_INT64("day18", day18, 2021, 18, aoc_result_t, 3486, 4747,
+                     total_time);
+#endif
     aoc_result_t day12(char *ptr, int len);
 
     printf("Total: %g msecs\n", total_time / 1000000.0);
