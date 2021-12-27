@@ -66,7 +66,15 @@ valgrind:
 	$(MAKE) aoc2021
 	valgrind --max-stackframe=3000000 --leak-check=full ./aoc2021
 
-build/cppcheck.stamp: $(INPUTS_SRC) $(SOURCES) $(UTILS_SRC)
-	cppcheck -q -j$(shell nproc) $? && touch $@
+CPPCHECK=$(shell bash -c "command -v cppcheck")
 
-cppcheck: build/cppcheck.stamp
+ifneq ($(CPPCHECK),)
+$(BUILD_DIR)/cppcheck.stamp: $(INPUTS_SRC) $(SOURCES) $(UTILS_SRC) Makefile
+	$(CPPCHECK) -q -j$(shell nproc) $(INPUTS_SRC) $(SOURCES) $(UTILS_SRC) && touch $@
+
+cppcheck: $(BUILD_DIR)/cppcheck.stamp
+else
+.PHONY:
+cppcheck:
+	@echo "cppcheck not installed"
+endif
