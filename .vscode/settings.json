@@ -20,6 +20,9 @@
         "cwchar": "c",
         "random": "c",
         "limits": "c",
-        "ratio": "c"
+        "ratio": "c",
+        "ctype.h": "c",
+        "istream": "c",
+        "ostream": "c"
     }
 }

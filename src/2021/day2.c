@@ -10,7 +10,7 @@ aoc_result_t day2(char *input, UNUSED int len) {
     int pos1 = 0, pos2 = 0;
     int aim = 0;
 
-    while (true) {
+    while ((p - input) + 1 < len) {
         char *q = strchr(p, ' ');
         if (q == NULL)
             break;

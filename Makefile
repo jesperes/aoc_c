@@ -2,10 +2,17 @@ NUM_REPS=1
 WARNINGS= -Wall -Werror -Wno-gnu-empty-initializer
 DEFINES= -D_GNU_SOURCE -DNUM_REPS=$(NUM_REPS)
 INCLUDES= -Iinclude -Isrc/utils
+LIBS=-lm
+# MEMORY_SANITIZER=t
 
+ifdef MEMORY_SANITIZER
+CC=gcc
+CFLAGS=-fsanitize=address -g -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
+LDFLAGS=-fsanitize=address
+else
 CC=clang
 CFLAGS=-g -Ofast -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
-# CFLAGS=-g -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
+endif
 
 # TODO parameterize this on year
 YEAR=2021
@@ -22,7 +29,7 @@ default:
 UTILS_SRC=$(wildcard src/utils/*.c)
 UTILS_OBJ=$(UTILS_SRC:src/utils/%.c=build/%.o)
 
-LIBS=build/libutils.a
+LIBS+=build/libutils.a
 
 INPUTS=$(wildcard inputs/$(YEAR)/*.txt)
 INPUTS_SRC=$(INPUTS:inputs/$(YEAR)/%.txt=build/%.c)
@@ -40,7 +47,7 @@ build/libutils.a: $(UTILS_OBJ)
 	ar rcs $@ $^
 
 aoc2021: $(OBJECTS) $(INPUTS_OBJ) $(LIBS) | $(BUILD_DIR)
-	$(CC) $^ $(LIBS) -o $@
+	$(CC) $^ $(LIBS) -o $@ $(LDFLAGS)
 
 $(BUILD_DIR):
 	mkdir -p $@
