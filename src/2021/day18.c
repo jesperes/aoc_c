@@ -1,424 +1,272 @@
 #include "aoc.h"
 #include "utils.h"
 #include <ctype.h>
-#include <limits.h>
-#include <math.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-// We use malloc/free quite heavily here, so speed up things by using a
-// statically allocated buffer instead.
-#define USE_SIMPLE_MALLOC
+#define MAX_DIGITS 100
 
-#ifdef USE_SIMPLE_MALLOC
-#define malloc my_malloc
-#define free my_free
-
-// 20MB is enough
-#define MYMALLOC_MAX 20000000
-uint8_t mymalloc_buf[MYMALLOC_MAX];
-int mymalloc_top = 0;
-
-void *my_malloc(int bytes) {
-    // assert(mymalloc_top + bytes < MYMALLOC_MAX);
-    void *ptr = &mymalloc_buf[mymalloc_top];
-    mymalloc_top += bytes;
-    return ptr;
-}
-void my_free(UNUSED void *ptr) {}
-#endif
-
-#define MAX_TOKENS 1024
-
-enum Direction { Left = false, Right = true };
-
-#define OTHER(dir) (!(dir))
-
-enum TokenId { //
-    TokenInteger,
-    TokenComma,
-    TokenLeftBracket,
-    TokenRightBracket
-};
-
-typedef struct {
-    enum TokenId id;
+typedef struct node {
+    bool is_literal;
     int value;
-} token_t;
+    int depth;
+    struct node *left;
+    struct node *right;
+} node_t;
 
 typedef struct {
-    token_t *tokens;
+    int value;
+    int depth;
+} digit_t;
+
+typedef struct {
+    digit_t *digits;
+    digit_t *copy_buf;
     int len;
-} token_list_t;
+} number_t;
 
-struct node {
-    bool is_leaf;
-    struct node *parent;
-    union {
-        struct {
-            // The location of this node in the token array
-            int value;
-        } leaf;
-        struct {
-            struct node *left;
-            struct node *right;
-        } internal;
-    } type;
-};
-
-typedef struct node node_t;
-
-#if 0
-void print_token(token_t *token) {
-    switch (token->id) {
-    case TokenInteger:
-        printf("Integer(%d)\n", token->value);
-        break;
-    case TokenLeftBracket:
-        printf("LBracket\n");
-        break;
-    case TokenRightBracket:
-        printf("RBracket\n");
-        break;
-    case TokenComma:
-        printf("Comma\n");
-        break;
-    default:
-        assert(0);
-        return;
-    }
+number_t new_number() {
+    number_t number = {0};
+    number.digits = calloc(100, sizeof(digit_t));
+    number.copy_buf = calloc(100, sizeof(digit_t));
+    number.len = 0;
+    return number;
 }
 
-void print_tokens(token_list_t *token_list) {
-    printf("%d tokens:\n", token_list->len);
-    for (int i = 0; i < token_list->len; i++) {
-        print_token(&token_list->tokens[i]);
-    }
+void free_number(number_t *number) {
+    free(number->digits);
+    free(number->copy_buf);
 }
-#endif
 
-token_list_t lexer(char *p, int len) {
-    token_list_t token_list;
-    token_list.tokens = malloc(MAX_TOKENS * sizeof(token_t));
-    int i = 0;
-    char *q = p;
+number_t parse_number(char *str) {
+    int depth = 0;
+    number_t number = new_number();
+    int j = 0;
 
-    while (true) {
-        if (q - p >= len) {
-            token_list.len = i;
-            return token_list;
-        }
-
-        token_t token = {0};
-        char c = *q;
-
+    for (int i = 0; str[i] != 0; i++) {
+        char c = str[i];
         switch (c) {
         case '[':
-            token.id = TokenLeftBracket;
-            q++;
-            break;
-        case ',':
-            token.id = TokenComma;
-            q++;
+            depth++;
             break;
         case ']':
-            token.id = TokenRightBracket;
-            q++;
+            depth--;
             break;
-        default:
-            assert(isdigit(*q));
-            token.id = TokenInteger;
-            token.value = strtol(q, &q, 10);
-            assert(*q == ',' || *q == ']');
+        case ',':
+            break;
+        default: {
+            assert(isdigit(c));
+            char *p = &str[i];
+            number.digits[j].depth = depth;
+            number.digits[j].value = strtol(p, &p, 10);
+            i = (p - str) - 1;
+            j++;
             break;
         }
-
-        token_list.tokens[i++] = token;
-        assert(i < MAX_TOKENS);
+        }
     }
 
-    assert(0);
-    return token_list;
+    number.len = j;
+    return number;
 }
 
-#if 0
-void print_node(node_t *node) {
-    if (node == NULL) {
-        printf("NULL NODE\n");
-    } else if (node->is_leaf) {
-        printf("INT[%p]: value=%d parent=%p\n", node, node->type.leaf.value,
-               node->parent);
-    } else {
-        printf("PAIR[%p]: parent=%p left=%p right=%p\n", node, node->parent,
-               node->type.internal.left, node->type.internal.right);
+// Inspired by https://github.com/aldanor/aoc-2021/blob/master/src/day18/mod.rs,
+// but translated to C.
+void fast_reduce(number_t *number, bool explode_only) {
+    int i = 0; // index into the source buffer
+    int j = 0; // index into the target buffer
+
+    if (explode_only && number->digits[0].depth == 5) {
+        if (number->len != 2) {
+            number->digits[2].value += number->digits[1].value;
+        }
+        digit_t zero = {0, 4};
+        number->copy_buf[j++] = zero;
+        i = 2;
     }
+
+    while (i < number->len) {
+        digit_t *digit = &number->digits[i];
+        // printf("i = %d, digit = %d at depth %d\n", i, digit->value,
+        //        digit->depth);
+        if (digit->depth == 5) {
+            // explode
+            assert(number->digits[i + 1].depth == 5);
+            int left_value = number->digits[i].value;
+            int right_value = number->digits[i + 1].value;
+            printf("exploding (%d,%d)\n", left_value, right_value);
+            digit_t zero = {0, 4};
+            number->digits[i + 1] = zero;
+            if (i + 2 < number->len) {
+                number->digits[i + 2].value += right_value;
+            }
+
+            if (explode_only) {
+                number->copy_buf[j - 1].value += left_value;
+                i++;
+            } else if (j > 0) {
+                number->digits[i] = number->copy_buf[--j];
+                number->digits[i].value += left_value;
+            } else {
+                i++;
+            }
+        } else if (!explode_only && digit->value >= 10) {
+            // split
+            digit_t left = {digit->value >> 1, digit->depth + 1};
+            digit_t right = {digit->value - left.value, left.depth};
+            printf("splitting %d -> %d,%d\n", digit->value, left.value,
+                   right.value);
+            if (i != 0) {
+                number->digits[i - 1] = left;
+                number->digits[i] = right;
+                i--;
+            } else {
+                number->digits[0] = left;
+                number->digits[1] = right;
+            }
+        } else {
+            number->copy_buf[j++] = number->digits[i++];
+        }
+    }
+
+    digit_t *tmp = number->digits;
+    number->digits = number->copy_buf;
+    number->copy_buf = tmp;
+    number->len = j;
 }
-#endif
 
-node_t *copy_node(node_t *node, node_t *parent) {
-    if (node->is_leaf) {
-        assert(parent != NULL);
-        node_t *copy = malloc(sizeof(node_t));
-        copy->is_leaf = true;
-        copy->parent = parent;
-        copy->type.leaf.value = node->type.leaf.value;
-        return copy;
-    } else {
-        node_t *copy = malloc(sizeof(node_t));
-        copy->is_leaf = false;
-        copy->parent = parent;
-        copy->type.internal.left = copy_node(node->type.internal.left, copy);
-        copy->type.internal.right = copy_node(node->type.internal.right, copy);
-        return copy;
-    }
+void reduce(number_t *number) {
+    fast_reduce(number, true);
+    fast_reduce(number, false);
 }
 
-node_t *do_parse(token_list_t *token_list, node_t *parent, int i,
-                 int *next_token_idx) {
-    node_t *node = malloc(sizeof(node_t));
-    node->parent = parent;
-
-    switch (token_list->tokens[i].id) {
-    case TokenInteger:
-        node->is_leaf = true;
-        node->type.leaf.value = token_list->tokens[i].value;
-        if (next_token_idx)
-            *next_token_idx = i + 1;
-        break;
-
-    case TokenLeftBracket: {
-        int idx;
-        node->is_leaf = false;
-        node->type.internal.left = do_parse(token_list, node, i + 1, &idx);
-        node->type.internal.right = do_parse(token_list, node, idx + 1, &idx);
-        if (next_token_idx)
-            *next_token_idx = idx + 1;
-        break;
+void add_and_reduce(number_t *number, number_t *other) {
+    for (int i = 0; i < other->len; i++) {
+        number->digits[number->len + i] = other->digits[i];
     }
-
-    default:
-        assert(0);
+    number->len += other->len;
+    for (int i = 0; i < number->len; i++) {
+        number->digits[i].depth++;
     }
-
-    return node;
+    reduce(number);
 }
 
-node_t *parse(char *str) {
-    int len = strlen(str);
-    token_list_t token_list = lexer(str, len);
-    node_t *root = do_parse(&token_list, NULL, 0, NULL);
+int magnitude(number_t *number) {
+    digit_t stack[MAX_DIGITS];
+    int p = 0;
+
+    for (int i = 0; i < number->len; i++) {
+        stack[p++] = number->digits[i];
+        while (p > 1) {
+            digit_t left = stack[p - 2];
+            digit_t right = stack[p - 1];
+            if (left.depth == right.depth) {
+                stack[p - 2].value = left.value * 3 + right.value * 2;
+                stack[p - 2].depth = left.depth - 1;
+                p--;
+            } else {
+                break;
+            }
+        }
+    }
+
+    assert(p == 1);
+    return stack[0].value;
+}
+
+node_t to_nodes(number_t *number) {
+    node_t *nodes = calloc(number->len, sizeof(node_t));
+    int numnodes = number->len;
+    for (int i = 0; i < number->len; i++) {
+        nodes[i].is_literal = true;
+        nodes[i].depth = number->digits[i].depth;
+        nodes[i].value = number->digits[i].value;
+        nodes[i].left = NULL;
+        nodes[i].right = NULL;
+    }
+
+outer:
+    while (numnodes > 1) {
+        // printf("numnodes = %d\n", numnodes);
+        // for (int i = 0; i < numnodes; i++) {
+        //     printf("%d (depth %d)\n", nodes[i].value, nodes[i].depth);
+        // }
+        for (int i = 0; i < numnodes - 1; i++) {
+            if (nodes[i].depth == nodes[i + 1].depth) {
+                // printf("Collapsed pair %d,%d at depth %d\n", nodes[i].value,
+                //        nodes[i + 1].value, nodes[i].depth);
+                node_t *left = malloc(sizeof(node_t));
+                *left = nodes[i];
+                node_t *right = malloc(sizeof(node_t));
+                *right = nodes[i + 1];
+                nodes[i].depth--;
+                nodes[i].is_literal = false;
+                nodes[i].value = -1;
+                nodes[i].left = left;
+                nodes[i].right = right;
+                int remaining_nodes = numnodes - (i + 2);
+                memmove(&nodes[i + 1], &nodes[i + 2],
+                        remaining_nodes * sizeof(node_t));
+                numnodes--;
+                goto outer;
+            }
+        }
+    }
+
+    node_t root = nodes[0];
+    free(nodes);
     return root;
 }
 
-node_t *find_explodable_node(node_t *node, int depth) {
-    if (node->is_leaf) {
-        return NULL;
-    } else if (depth >= 4) {
-        return node;
+void print_nodes(node_t *node) {
+    if (node->is_literal) {
+        printf("%d", node->value);
     } else {
-        node_t *left =
-            find_explodable_node(node->type.internal.left, depth + 1);
-
-        if (left != NULL)
-            return left;
-
-        return find_explodable_node(node->type.internal.right, depth + 1);
+        printf("[");
+        print_nodes(node->left);
+        printf(",");
+        print_nodes(node->right);
+        printf("]");
     }
 }
 
-node_t *find_leaf(node_t *node, enum Direction direction) {
-    if (node->is_leaf) {
-        return node;
-    } else {
-        return find_leaf((direction == Right) ? node->type.internal.right
-                                              : node->type.internal.left,
-                         direction);
-    }
+void print_number(number_t *number) {
+    node_t nodes = to_nodes(number);
+    print_nodes(&nodes);
+    printf("\n");
 }
 
-// Find a node's in-order traversal sibling in the given
-// direction
-node_t *find_inorder_sibling(node_t *node, enum Direction direction) {
-    if (node->parent == NULL) {
-        // We have reached the top without being able to find a sibling, this
-        // means that we started with the left-most or right-most leaf.
-        return NULL;
-    }
+int sum_numbers(char *input, int len) {
+    if (len == -1)
+        len = strlen(input);
+    int numlines = 0;
+    char **lines = split_input_to_lines(input, len, &numlines);
 
-    if (node == node->parent->type.internal.right) {
-        if (direction == Right) {
-            return find_inorder_sibling(node->parent, direction);
-        } else {
-            return find_leaf(node->parent->type.internal.left,
-                             OTHER(direction));
-        }
-    } else if (node == node->parent->type.internal.left) {
-        if (direction == Right) {
-            return find_leaf(node->parent->type.internal.right,
-                             OTHER(direction));
-        } else {
-            return find_inorder_sibling(node->parent, direction);
-        }
-    }
-    assert(0);
-    return NULL;
-}
+    number_t a = parse_number(lines[0]);
 
-void explode(node_t *node) {
-    // exploding nodes should be a pair of integers
-    assert(!node->is_leaf);
-    assert(node->type.internal.left->is_leaf);
-    assert(node->type.internal.right->is_leaf);
-
-    node_t *left_sibling = find_inorder_sibling(node, Left);
-    if (left_sibling != NULL) {
-        assert(left_sibling->is_leaf);
-        left_sibling->type.leaf.value +=
-            node->type.internal.left->type.leaf.value;
-    }
-    node_t *right_sibling = find_inorder_sibling(node, Right);
-    if (right_sibling != NULL) {
-        assert(right_sibling->is_leaf);
-        right_sibling->type.leaf.value +=
-            node->type.internal.right->type.leaf.value;
-    }
-
-    // Replace this node with a leaf node with value 0.
-    node->type.internal.left = NULL;
-    node->type.internal.right = NULL;
-    node->is_leaf = true;
-    node->type.leaf.value = 0;
-}
-
-bool maybe_explode(node_t *node) {
-    node_t *explodable = find_explodable_node(node, 0);
-    if (explodable != NULL) {
-        explode(explodable);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-node_t *find_splittable_node(node_t *node) {
-    if (node->is_leaf) {
-        if (node->type.leaf.value >= 10)
-            return node;
-        else
-            return NULL;
-    } else {
-        node_t *left = find_splittable_node(node->type.internal.left);
-        if (left != NULL)
-            return left;
-
-        return find_splittable_node(node->type.internal.right);
-    }
-}
-
-void split(int x, int *left, int *right) {
-    double half = ((double)x) / 2;
-    *left = (int)floor(half);
-    *right = (int)ceil(half);
-}
-
-bool maybe_split(node_t *node) {
-    node_t *splittable = find_splittable_node(node);
-    if (splittable != NULL) {
-        assert(splittable->is_leaf);
-        int value = splittable->type.leaf.value;
-        int left;
-        int right;
-        split(value, &left, &right);
-        splittable->is_leaf = false;
-        splittable->type.internal.left = malloc(sizeof(node_t));
-        splittable->type.internal.left->parent = splittable;
-        splittable->type.internal.left->is_leaf = true;
-        splittable->type.internal.left->type.leaf.value = left;
-        splittable->type.internal.right = malloc(sizeof(node_t));
-        splittable->type.internal.right->parent = splittable;
-        splittable->type.internal.right->is_leaf = true;
-        splittable->type.internal.right->type.leaf.value = right;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-void reduce(node_t *root) {
-    while (true) {
-        if (maybe_explode(root)) {
-            continue;
-        }
-        if (maybe_split(root)) {
-            continue;
-        }
-        break;
-    }
-}
-
-node_t *add(node_t *left, node_t *right) {
-    node_t *node = malloc(sizeof(node_t));
-    node->is_leaf = false;
-    node->parent = NULL;
-    node->type.internal.left = left;
-    node->type.internal.right = right;
-    left->parent = node;
-    right->parent = node;
-    reduce(node);
-    return node;
-}
-
-int magnitude(node_t *node) {
-    if (node->is_leaf) {
-        return node->type.leaf.value;
-    } else {
-        return magnitude(node->type.internal.left) * 3 +
-               magnitude(node->type.internal.right) * 2;
-    }
-}
-
-int add_numbers(node_t **numbers, int numlines) {
-    node_t *a = copy_node(numbers[0], NULL);
     for (int i = 1; i < numlines; i++) {
-        a = add(a, copy_node(numbers[i], NULL));
-    }
-    return magnitude(a);
-}
-
-int find_max_magnitude(node_t **numbers, int numlines) {
-    int max_magnitude = INT_MIN;
-
-    for (int i = 0; i < numlines; i++) {
-        for (int j = 0; j < numlines; j++) {
-            if (i == j)
-                continue;
-
-            node_t *a = copy_node(numbers[i], NULL);
-            node_t *b = copy_node(numbers[j], NULL);
-            node_t *sum = add(a, b);
-            int m = magnitude(sum);
-            if (m > max_magnitude)
-                max_magnitude = m;
-        }
+        number_t b = parse_number(lines[i]);
+        add_and_reduce(&a, &b);
     }
 
-    return max_magnitude;
+    print_number(&a);
+
+    return magnitude(&a);
 }
 
 aoc_result_t day18(char *input, int len) {
     aoc_result_t result = {0};
-    int numlines = 0;
-    char **lines = split_input_to_lines(input, len, &numlines);
-    int max_numbers = 100;
-    node_t **numbers = malloc(max_numbers * sizeof(node_t *));
-    for (int i = 0; i < numlines; i++) {
-        numbers[i] = parse(lines[i]);
-    }
 
-    result.p1 = add_numbers(numbers, numlines);
-    result.p2 = find_max_magnitude(numbers, numlines);
-    free_lines(lines, numlines);
+    // number_t number = parse_number("[1,[2,[3,[4,[5,6]]]]]");
+    // print_number(&number);
+    // reduce(&number);
+    // print_number(&number);
+    assert(0 == sum_numbers("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]\n"
+                            "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]\n"
+                            "[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]\n",
+                            -1));
+
+    result.p1 = sum_numbers(input, len);
     return result;
 }
