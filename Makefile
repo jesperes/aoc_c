@@ -1,8 +1,7 @@
-NUM_REPS=1
 WARNINGS= -Wall -Werror -Wno-gnu-empty-initializer
-DEFINES= -D_GNU_SOURCE -DNUM_REPS=$(NUM_REPS)
+DEFINES= -D_GNU_SOURCE
 INCLUDES= -Iinclude -Isrc/utils
-LIBS=-lm
+LIBS=-lm -ldl
 # MEMORY_SANITIZER=t
 
 ifdef MEMORY_SANITIZER
@@ -13,6 +12,8 @@ else
 CC=clang
 CFLAGS=-g -Ofast -march=native -MD $(WARNINGS) $(DEFINES) $(INCLUDES)
 endif
+
+LDFLAGS+=-rdynamic
 
 # TODO parameterize this on year
 YEAR=2021

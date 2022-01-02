@@ -123,9 +123,8 @@ char *coords_to_str(hashtable_t *ht) {
     return s;
 }
 
-aoc_result_int_string_t day13(char *ptr, int len) {
-    aoc_result_int_string_t result = {0, {0}};
-
+aoc_result_t day13(char *ptr, int len) {
+    aoc_result_t result = {0};
     hashtable_t ht;
     ht_init(&ht, 1000, 10);
 
@@ -155,7 +154,6 @@ aoc_result_int_string_t day13(char *ptr, int len) {
                      "#....#....#....#.#..#..#.#....#..#.#...\n"
                      "#....#....####.#..#.###..####..##..####\n") == 0);
     free(s);
-    strcpy(result.p2, "FPEKBEJL");
     ht_deinit(&ht);
     return result;
 }

@@ -10,8 +10,8 @@
 
 typedef struct node {
     bool is_literal;
-    int value;
-    int depth;
+    uint8_t value;
+    uint8_t depth;
     struct node *left;
     struct node *right;
 } node_t;

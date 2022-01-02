@@ -88,7 +88,7 @@ int crabs[] = {
     408,  442,  603,  681,  522,  478,  1072, 527,  1094, 104,  1267, 418,
     730,  217,  1198, 859};
 
-aoc_result_t day7() {
+aoc_result_t day7(UNUSED char *__input, UNUSED int __len) {
     aoc_result_t result;
     result.p1 = INT_MAX;
     result.p2 = INT_MAX;
