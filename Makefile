@@ -3,7 +3,7 @@ WARNINGS= -Wall -Werror -Wno-gnu-empty-initializer
 DEFINES= -D_GNU_SOURCE -DNUM_REPS=$(NUM_REPS)
 INCLUDES= -Iinclude -Isrc/utils
 LIBS=-lm
-MEMORY_SANITIZER=t
+# MEMORY_SANITIZER=t
 
 ifdef MEMORY_SANITIZER
 CC=gcc

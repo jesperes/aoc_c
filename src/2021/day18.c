@@ -1,6 +1,7 @@
 #include "aoc.h"
 #include "utils.h"
 #include <ctype.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,8 +29,8 @@ typedef struct {
 
 number_t new_number() {
     number_t number = {0};
-    number.digits = calloc(100, sizeof(digit_t));
-    number.copy_buf = calloc(100, sizeof(digit_t));
+    number.digits = calloc(MAX_DIGITS, sizeof(digit_t));
+    number.copy_buf = calloc(MAX_DIGITS, sizeof(digit_t));
     number.len = 0;
     return number;
 }
@@ -56,11 +57,8 @@ number_t parse_number(char *str) {
         case ',':
             break;
         default: {
-            assert(isdigit(c));
-            char *p = &str[i];
             number.digits[j].depth = depth;
-            number.digits[j].value = strtol(p, &p, 10);
-            i = (p - str) - 1;
+            number.digits[j].value = c - '0';
             j++;
             break;
         }
@@ -69,6 +67,15 @@ number_t parse_number(char *str) {
 
     number.len = j;
     return number;
+}
+
+number_t clone_number(number_t *number) {
+    number_t clone;
+    clone.len = number->len;
+    clone.digits = calloc(MAX_DIGITS, sizeof(digit_t));
+    clone.copy_buf = calloc(MAX_DIGITS, sizeof(digit_t));
+    memcpy(clone.digits, number->digits, number->len * sizeof(digit_t));
+    return clone;
 }
 
 // Inspired by https://github.com/aldanor/aoc-2021/blob/master/src/day18/mod.rs,
@@ -88,14 +95,10 @@ void fast_reduce(number_t *number, bool explode_only) {
 
     while (i < number->len) {
         digit_t *digit = &number->digits[i];
-        // printf("i = %d, digit = %d at depth %d\n", i, digit->value,
-        //        digit->depth);
         if (digit->depth == 5) {
             // explode
-            assert(number->digits[i + 1].depth == 5);
             int left_value = number->digits[i].value;
             int right_value = number->digits[i + 1].value;
-            printf("exploding (%d,%d)\n", left_value, right_value);
             digit_t zero = {0, 4};
             number->digits[i + 1] = zero;
             if (i + 2 < number->len) {
@@ -115,15 +118,16 @@ void fast_reduce(number_t *number, bool explode_only) {
             // split
             digit_t left = {digit->value >> 1, digit->depth + 1};
             digit_t right = {digit->value - left.value, left.depth};
-            printf("splitting %d -> %d,%d\n", digit->value, left.value,
-                   right.value);
             if (i != 0) {
                 number->digits[i - 1] = left;
                 number->digits[i] = right;
                 i--;
             } else {
+                memmove(&number->digits[1], &number->digits[0],
+                        number->len * sizeof(digit_t));
                 number->digits[0] = left;
                 number->digits[1] = right;
+                number->len++;
             }
         } else {
             number->copy_buf[j++] = number->digits[i++];
@@ -141,7 +145,7 @@ void reduce(number_t *number) {
     fast_reduce(number, false);
 }
 
-void add_and_reduce(number_t *number, number_t *other) {
+void add(number_t *number, number_t *other) {
     for (int i = 0; i < other->len; i++) {
         number->digits[number->len + i] = other->digits[i];
     }
@@ -149,6 +153,9 @@ void add_and_reduce(number_t *number, number_t *other) {
     for (int i = 0; i < number->len; i++) {
         number->digits[i].depth++;
     }
+}
+void add_and_reduce(number_t *number, number_t *other) {
+    add(number, other);
     reduce(number);
 }
 
@@ -175,6 +182,7 @@ int magnitude(number_t *number) {
     return stack[0].value;
 }
 
+#if 0
 node_t to_nodes(number_t *number) {
     node_t *nodes = calloc(number->len, sizeof(node_t));
     int numnodes = number->len;
@@ -218,6 +226,8 @@ outer:
     free(nodes);
     return root;
 }
+#endif
+#if 0
 
 void print_nodes(node_t *node) {
     if (node->is_literal) {
@@ -237,6 +247,17 @@ void print_number(number_t *number) {
     printf("\n");
 }
 
+void print_as_tree(number_t *number) {
+    for (int i = 0; i < number->len; i++) {
+        printf("[%02d depth=%d] ", i, number->digits[i].depth);
+        for (int d = 0; d < number->digits[i].depth; d++) {
+            putchar('-');
+        }
+        printf("%d\n", number->digits[i].value);
+    }
+}
+#endif
+#if 0
 int sum_numbers(char *input, int len) {
     if (len == -1)
         len = strlen(input);
@@ -250,23 +271,57 @@ int sum_numbers(char *input, int len) {
         add_and_reduce(&a, &b);
     }
 
-    print_number(&a);
-
     return magnitude(&a);
 }
+#endif
 
 aoc_result_t day18(char *input, int len) {
     aoc_result_t result = {0};
+    int numlines = 0;
+    char **lines = split_input_to_lines(input, len, &numlines);
 
-    // number_t number = parse_number("[1,[2,[3,[4,[5,6]]]]]");
-    // print_number(&number);
-    // reduce(&number);
-    // print_number(&number);
-    assert(0 == sum_numbers("[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]\n"
-                            "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]\n"
-                            "[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]\n",
-                            -1));
+    number_t nums[100];
+    for (int i = 0; i < numlines; i++) {
+        nums[i] = parse_number(lines[i]);
+    }
 
-    result.p1 = sum_numbers(input, len);
+    number_t a = clone_number(&nums[0]);
+    for (int i = 0; i < numlines; i++) {
+        number_t b = clone_number(&nums[i]);
+        add_and_reduce(&a, &b);
+        free_number(&b);
+    }
+
+    result.p1 = magnitude(&a);
+    free_number(&a);
+
+    int max_magnitude = INT_MIN;
+
+    // The solution in
+    // https://github.com/aldanor/aoc-2021/blob/master/src/day18/mod.rs uses
+    // into_par_iter on the outer loop to make things faster...
+    for (int i = 0; i < numlines; i++) {
+        for (int j = 0; j < numlines; j++) {
+            if (i == j)
+                continue;
+
+            number_t a = clone_number(&nums[i]);
+            number_t b = clone_number(&nums[j]);
+            add_and_reduce(&a, &b);
+            free_number(&b);
+            int m = magnitude(&a);
+            if (m > max_magnitude)
+                max_magnitude = m;
+            free_number(&a);
+        }
+    }
+
+    result.p2 = max_magnitude;
+    // result.p2 = 4747;
+
+    for (int i = 0; i < numlines; i++) {
+        free_number(&nums[i]);
+    }
+    free_lines(lines, numlines);
     return result;
 }
