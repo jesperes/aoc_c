@@ -1,30 +1,32 @@
 #include "utils.h"
+#include "array.h"
 #include <stdlib.h>
 #include <string.h>
-
-#define MAXLINES 1024
+#define MAXLINES 2048
 
 char **split_input_to_lines(char *input, int len, int *numlines) {
-    char **lines = malloc(MAXLINES * sizeof(char *));
+    ARRAY(char *) lines = {0};
     char *p = input;
-    int i = 0;
     while (p - input < len) {
         char *q = strchr(p, '\n');
         if (q == NULL) {
-            lines[i++] = strndup(p, len - (p - input));
+            ARRAY_ADD(lines, strndup(p, len - (p - input)));
             break;
         } else {
-            lines[i++] = strndup(p, (q - p));
+            ARRAY_ADD(lines, strndup(p, (q - p)));
             p = q + 1;
         }
     }
-    *numlines = i;
-    return lines;
+    *numlines = ARRAY_LEN(lines);
+    ARRAY_SHRINK(lines);
+    return ARRAY_ELEMS(lines);
 }
 
-void free_lines(char **lines, int numlines) {
-    for (int i = 0; i < numlines; i++) {
-        free(lines[i]);
+void free_lines(char **array, int numlines) {
+    ARRAY(char *) lines = {0};
+    ARRAY_INIT_FROM(lines, array, numlines);
+    for (int i = 0; i < ARRAY_LEN(lines); i++) {
+        free(ARRAY_GET(lines, i));
     }
-    free(lines);
+    ARRAY_FREE(lines);
 }

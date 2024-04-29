@@ -1,5 +1,6 @@
 #include "aoc.h"
 #include "aoc2021.h"
+#include "array.h"
 #include "hashtable.h"
 #include <dlfcn.h>
 #include <inttypes.h>
@@ -153,6 +154,7 @@ int main(int argc, char **argv) {
     days[i++] = day_i64(16, 927, 1725277876501);
     days[i++] = day_i64(17, 30628, 4433);
     days[i++] = day_i64(18, 3486, 4747);
+    days[i++] = day_i64(19, 0, 0);
     days[24] = day_i64(25, 295, 0);
 
     for (int i = 1; i < argc; i++) {

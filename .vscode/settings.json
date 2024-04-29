@@ -23,6 +23,7 @@
         "ratio": "c",
         "ctype.h": "c",
         "istream": "c",
-        "ostream": "c"
+        "ostream": "c",
+        "time.h": "c"
     }
 }
